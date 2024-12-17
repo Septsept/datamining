@@ -5,24 +5,34 @@ from yoloProcessor import YOLOProcessor
 
 
 class Main:
+    """
+    Main class to manage images and YOLO processing.
+    """
     def __init__(self):
+        """
+        Constructor.
+        """
         self.image_bank = None
         self.yolo_processor = None
 
     def run(self):
-        print("Bienvenue dans le gestionnaire d'images et YOLO.")
+        """
+        Run the main application.
+        :return:
+        """
+        print("Welcome to the Image Processing App ! - By Septsept")
 
         while True:
-            print("\n1. Charger un dossier d'images")
-            print("2. Afficher la liste des chemins d'images")
-            print("3. Afficher chaque image une par une")
-            print("4. Traiter les images avec YOLOv8 et enregistrer les résultats")
-            print("5. Quitter")
+            print("\n1. Load a folder of images")
+            print("2. List the image paths")
+            print("3. Display each image one by one")
+            print("4. Process the images with YOLO")
+            print("5. Quit")
 
             try:
-                choice = int(input("\nEntrez votre choix : "))
+                choice = int(input("\nChoice: "))
             except ValueError:
-                print("Veuillez entrer un numéro valide.")
+                print("Invalid choice. Please try again.")
                 continue
 
             if choice == 1:
@@ -34,63 +44,79 @@ class Main:
             elif choice == 4:
                 self.process_images_with_yolo()
             elif choice == 5:
-                print("Au revoir !")
+                print("Goodbye!")
                 break
             else:
-                print("Choix non valide. Veuillez réessayer.")
+                print("Invalid choice. Please try again.")
 
     def load_image_folder(self):
-        folder_path = input("Entrez le chemin du dossier contenant les images : ").strip()
+        """
+        Load a folder of images.
+        :return:
+        """
+        folder_path = input("Enter the path to the folder containing the images:").strip()
         try:
             self.image_bank = ImageBank(folder_path)
-            print(f"{len(self.image_bank.get_image_paths())} images chargées avec succès.")
-            self.yolo_processor = YOLOProcessor(model_path="yolo11x.pt", output_folder="image_traitees")
+            print(f"{len(self.image_bank.get_image_paths())} images loaded successfully.")
+            self.yolo_processor = YOLOProcessor(model_path="yolo11x.pt", output_folder="processed_images")
         except (FileNotFoundError, ValueError) as e:
-            print(f"Erreur : {e}")
+            print(f"Error: {e}")
 
     def list_images(self):
+        """
+        List the image paths.
+        :return:
+        """
         if self.image_bank is None:
-            print("Veuillez d'abord charger un dossier d'images (option 1).")
+            print("Please load a folder of images first (option 1).")
             return
 
-        print("\nImages chargées :")
+        print("\nImages loaded:")
         for image_path in self.image_bank.get_image_paths():
             print(f"- {image_path}")
 
     def display_images(self):
+        """
+        Display each image one by one.
+        :return:
+        """
         if self.image_bank is None:
-            print("Veuillez d'abord charger un dossier d'images (option 1).")
+            print("Please load a folder of images first (option 1).")
             return
 
         for image_path in self.image_bank:
             try:
                 image = cv2.imread(image_path)
                 if image is None:
-                    print(f"Impossible de charger l'image : {image_path}")
+                    print(f"Unable to load the image: {image_path}")
                     continue
 
                 cv2.imshow(f"Image - {image_path}", image)
-                print(f"Affichage de l'image : {image_path}")
+                print(f"Displaying image: {image_path}")
 
                 key = cv2.waitKey(0)
                 if key == 27:
-                    print("Affichage interrompu.")
+                    print("Display interrupted.")
                     break
 
                 cv2.destroyAllWindows()
             except Exception as e:
-                print(f"Impossible d'afficher l'image {image_path} : {e}")
+                print(f"Unable to display the image {image_path}: {e}")
 
         cv2.destroyAllWindows()
 
     def process_images_with_yolo(self):
+        """
+        Process the images with YOLO.
+        :return:
+        """
         if self.image_bank is None:
-            print("Veuillez d'abord charger un dossier d'images (option 1).")
+            print("Please load a folder of images first (option 1).")
             return
 
         if self.yolo_processor is None:
-            print("Veuillez d'abord initialiser le processeur YOLOv8 (option 1).")
+            print("Please initialize the YOLO processor first (option 1).")
             return
 
         self.yolo_processor.process_images(self.image_bank.get_image_paths())
-        print("Traitement terminé. Images annotées sauvegardées dans le dossier 'image_traitees'.")
+        print("Processing completed. Annotated images saved in the 'processed_images' folder.")
