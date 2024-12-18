@@ -1,12 +1,12 @@
-from ultralytics import YOLO
-import os
 import cv2
+import os
+from tqdm import tqdm
 
 class YOLOProcessor:
     """
-    Class to process images with YOLO and save the results.
+    Class to process videos using YOLO.
     """
-    def __init__(self, model_path='yolo11x.pt', output_folder='processed_images'):
+    def __init__(self, model_path, output_folder):
         """
         Constructor.
         :param model_path:
@@ -14,50 +14,65 @@ class YOLOProcessor:
         """
         self.model = self.load_model(model_path)
         self.output_folder = output_folder
-        os.makedirs(output_folder, exist_ok=True)
+        self.create_output_folder()
 
     def load_model(self, model_path):
         """
-        Load the YOLO model from the specified path.
+        Load the YOLO model.
         :param model_path:
         :return:
         """
-        try:
-            print(f"Loading YOLO model from {model_path}...")
-            model = YOLO(model_path)
-            return model
-        except Exception as e:
-            raise RuntimeError(f"Error loading YOLO model: {e}")
+        from ultralytics import YOLO
+        return YOLO(model_path)
 
-    def process_images(self, image_paths):
+    def create_output_folder(self):
         """
-        Process the images with YOLO and save the results.
-        :param image_paths:
+        Create the output folder if it does not exist.
         :return:
         """
-        for image_path in image_paths:
-            try:
-                print(f"Processing image: {image_path}")
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
 
-                image = cv2.imread(image_path)
-                if image is None:
-                    print(f"Unable to load the image: {image_path}")
+    def process_videos(self, video_paths):
+        """
+        Process the videos using YOLO.
+        :param video_paths:
+        :return:
+        """
+        for video_path in video_paths:
+            try:
+                print(f"Processing video: {video_path}")
+
+                cap = cv2.VideoCapture(video_path)
+                if not cap.isOpened():
+                    print(f"Unable to open video: {video_path}")
                     continue
 
-                image_resized = cv2.resize(image, (640, 640))
+                fourcc = cv2.VideoWriter_fourcc(*'XVID')
+                output_path = os.path.join(self.output_folder, os.path.basename(video_path))
+                out = cv2.VideoWriter(output_path, fourcc, 5.0, (640, 480))
 
-                results = self.model(image_resized)
+                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                for _ in tqdm(range(total_frames), desc="Processing frames", unit="frame"):
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
 
-                if results and hasattr(results[0], 'boxes'):
-                    annotated_image = results[0].plot()
-                    output_path = os.path.join(self.output_folder, os.path.basename(image_path))
-                    cv2.imwrite(output_path, annotated_image)
-                    print(f"Image processed and saved in: {output_path}")
-                else:
-                    print(f"Error: No detection result for image {image_path}")
+                    frame_resized = cv2.resize(frame, (640, 480))
+                    results = self.model(frame_resized, verbose=False)
+
+                    if results and hasattr(results[0], 'boxes'):
+                        annotated_frame = results[0].plot()
+                        out.write(annotated_frame)
+                    else:
+                        out.write(frame_resized)
+
+                cap.release()
+                out.release()
+                print(f"Video processed and saved to: {output_path}")
 
             except Exception as e:
-                print(f"Error while processing image {image_path}: {e}")
+                print(f"Error processing video {video_path}: {e}")
             except KeyboardInterrupt:
-                print("Processing interrupted by the user.")
+                print("Processing interrupted by user.")
                 break

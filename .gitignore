@@ -1,3 +1,6 @@
 images
 processed_images
+videos
+processed_videos
 yolo11x.pt
+yolo11n.pt

@@ -1,32 +1,30 @@
 import cv2
-
-from imageBank import ImageBank
+from videoBank import VideoBank
 from yoloProcessor import YOLOProcessor
-
 
 class Main:
     """
-    Main class to manage images and YOLO processing.
+    Main class to run the video processing app.
     """
     def __init__(self):
         """
         Constructor.
         """
-        self.image_bank = None
+        self.video_bank = None
         self.yolo_processor = None
 
     def run(self):
         """
-        Run the main application.
+        Run the app.
         :return:
         """
-        print("Welcome to the Image Processing App ! - By Septsept")
+        print("Welcome to the Video Processing App! - By Septsept")
 
         while True:
-            print("\n1. Load a folder of images")
-            print("2. List the image paths")
-            print("3. Display each image one by one")
-            print("4. Process the images with YOLO")
+            print("\n1. Load a folder of videos")
+            print("2. List the video paths")
+            print("3. Display each video one by one")
+            print("4. Process the videos with YOLO")
             print("5. Quit")
 
             try:
@@ -36,87 +34,93 @@ class Main:
                 continue
 
             if choice == 1:
-                self.load_image_folder()
+                self.load_video_folder()
             elif choice == 2:
-                self.list_images()
+                self.list_videos()
             elif choice == 3:
-                self.display_images()
+                self.display_videos()
             elif choice == 4:
-                self.process_images_with_yolo()
+                self.process_videos_with_yolo()
             elif choice == 5:
                 print("Goodbye!")
                 break
             else:
                 print("Invalid choice. Please try again.")
 
-    def load_image_folder(self):
+    def load_video_folder(self):
         """
-        Load a folder of images.
+        Load a folder of videos.
         :return:
         """
-        folder_path = input("Enter the path to the folder containing the images:").strip()
+        folder_path = input("Enter the path to the folder containing the videos:").strip()
         try:
-            self.image_bank = ImageBank(folder_path)
-            print(f"{len(self.image_bank.get_image_paths())} images loaded successfully.")
-            self.yolo_processor = YOLOProcessor(model_path="yolo11x.pt", output_folder="processed_images")
+            self.video_bank = VideoBank(folder_path)
+            print(f"{len(self.video_bank.get_video_paths())} videos loaded successfully.")
+            self.yolo_processor = YOLOProcessor(model_path="yolo11n.pt", output_folder="processed_videos")
         except (FileNotFoundError, ValueError) as e:
             print(f"Error: {e}")
 
-    def list_images(self):
+    def list_videos(self):
         """
-        List the image paths.
+        List the video paths.
         :return:
         """
-        if self.image_bank is None:
-            print("Please load a folder of images first (option 1).")
+        if self.video_bank is None:
+            print("Please load a folder of videos first (option 1).")
             return
 
-        print("\nImages loaded:")
-        for image_path in self.image_bank.get_image_paths():
-            print(f"- {image_path}")
+        print("\nVideos loaded:")
+        for video_path in self.video_bank.get_video_paths():
+            print(f"- {video_path}")
 
-    def display_images(self):
+    def display_videos(self):
         """
-        Display each image one by one.
+        Display each video one by one.
         :return:
         """
-        if self.image_bank is None:
-            print("Please load a folder of images first (option 1).")
+        if self.video_bank is None:
+            print("Please load a folder of videos first (option 1).")
             return
 
-        for image_path in self.image_bank:
+        for video_path in self.video_bank:
             try:
-                image = cv2.imread(image_path)
-                if image is None:
-                    print(f"Unable to load the image: {image_path}")
+                cap = cv2.VideoCapture(video_path)
+                if not cap.isOpened():
+                    print(f"Unable to open the video: {video_path}")
                     continue
 
-                cv2.imshow(f"Image - {image_path}", image)
-                print(f"Displaying image: {image_path}")
+                while cap.isOpened():
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
 
-                key = cv2.waitKey(0)
-                if key == 27:
-                    print("Display interrupted.")
-                    break
+                    cv2.imshow(f"Video - {video_path}", frame)
+                    print(f"Displaying video: {video_path}")
 
+                    key = cv2.waitKey(30)
+                    if key == 27:
+                        print("Display interrupted.")
+                        break
+
+                cap.release()
                 cv2.destroyAllWindows()
             except Exception as e:
-                print(f"Unable to display the image {image_path}: {e}")
+                print(f"Unable to display the video {video_path}: {e}")
 
         cv2.destroyAllWindows()
 
-    def process_images_with_yolo(self):
+    def process_videos_with_yolo(self):
         """
-        Process the images with YOLO.
+        Process the videos with YOLO.
         :return:
         """
-        if self.image_bank is None:
-            print("Please load a folder of images first (option 1).")
+        if self.video_bank is None:
+            print("Please load a folder of videos first (option 1).")
             return
 
         if self.yolo_processor is None:
             print("Please initialize the YOLO processor first (option 1).")
             return
 
-        self.yolo_processor.process_images(self.image_bank.get_image_paths())
-        print("Processing completed. Annotated images saved in the 'processed_images' folder.")
+        self.yolo_processor.process_videos(self.video_bank.get_video_paths())
+        print("Processing completed. Annotated videos saved in the 'processed_videos' folder.")
