@@ -1,8 +1,8 @@
 import cv2
-from videoBank import VideoBank
-from yoloProcessor import YOLOProcessor
+from banks.video_bank import VideoBank
+from processor.yolo_processor import YOLOProcessor
 
-class Main:
+class MenuVideo:
     """
     Main class to run the video processing app.
     """
@@ -56,7 +56,7 @@ class Main:
         try:
             self.video_bank = VideoBank(folder_path)
             print(f"{len(self.video_bank.get_video_paths())} videos loaded successfully.")
-            self.yolo_processor = YOLOProcessor(model_path="yolo11n.pt", output_folder="processed_videos")
+            self.yolo_processor = YOLOProcessor()
         except (FileNotFoundError, ValueError) as e:
             print(f"Error: {e}")
 

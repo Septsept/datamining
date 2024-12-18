@@ -1,33 +1,23 @@
 import cv2
 import os
 from tqdm import tqdm
+from ultralytics import YOLO
 
 class YOLOProcessor:
     """
     Class to process videos using YOLO.
     """
-    def __init__(self, model_path, output_folder):
+    def __init__(self):
         """
         Constructor.
-        :param model_path:
-        :param output_folder:
         """
-        self.model = self.load_model(model_path)
-        self.output_folder = output_folder
-        self.create_output_folder()
+        self.model = YOLO("yolo11n.pt")
+        self.output_folder = os.path.join("output", "processed_videos")
+        self.create_output_folders()
 
-    def load_model(self, model_path):
+    def create_output_folders(self):
         """
-        Load the YOLO model.
-        :param model_path:
-        :return:
-        """
-        from ultralytics import YOLO
-        return YOLO(model_path)
-
-    def create_output_folder(self):
-        """
-        Create the output folder if it does not exist.
+        Create the output folders.
         :return:
         """
         if not os.path.exists(self.output_folder):
@@ -35,7 +25,7 @@ class YOLOProcessor:
 
     def process_videos(self, video_paths):
         """
-        Process the videos using YOLO.
+        Process the videos.
         :param video_paths:
         :return:
         """

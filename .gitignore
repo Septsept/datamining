@@ -1,6 +1,5 @@
 images
-processed_images
 videos
-processed_videos
+output
 yolo11x.pt
 yolo11n.pt
