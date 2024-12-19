@@ -1,33 +1,24 @@
-import cv2
 import os
+import cv2
 from tqdm import tqdm
-from ultralytics import YOLO
+from processor.processor import Processor
 
-class YOLOProcessor:
+class VideoProcessor(Processor):
     """
     Class to process videos using YOLO.
     """
-    def __init__(self):
+    def __init__(self, model_path='yolo11n.pt', output_folder='output/processed_videos'):
         """
         Constructor.
+        :param model_path: Path to the YOLO model.
+        :param output_folder: Folder to save processed videos.
         """
-        self.model = YOLO("yolo11n.pt")
-        self.output_folder = os.path.join("output", "processed_videos")
-        self.create_output_folders()
-
-    def create_output_folders(self):
-        """
-        Create the output folders.
-        :return:
-        """
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
+        super().__init__(model_path, output_folder)
 
     def process_videos(self, video_paths):
         """
         Process the videos.
-        :param video_paths:
-        :return:
+        :param video_paths: List of video paths to process.
         """
         for video_path in video_paths:
             try:
@@ -43,7 +34,7 @@ class YOLOProcessor:
                 out = cv2.VideoWriter(output_path, fourcc, 5.0, (640, 480))
 
                 total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                for _ in tqdm(range(total_frames), desc="Processing frames", unit="frame"):
+                for _ in tqdm(range(total_frames), desc="Processing frames", unit="frame", dynamic_ncols=True):
                     ret, frame = cap.read()
                     if not ret:
                         break
