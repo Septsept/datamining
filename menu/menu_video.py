@@ -1,22 +1,21 @@
 import cv2
+from menu.menu import Menu
 from banks.video_bank import VideoBank
-from processor.yolo_processor import YOLOProcessor
+from processor.video_processor import VideoProcessor
 
-class MenuVideo:
+class MenuVideo(Menu):
     """
-    Main class to run the video processing app.
+    Class to handle video processing menu.
     """
     def __init__(self):
         """
         Constructor.
         """
-        self.video_bank = None
-        self.yolo_processor = None
+        super().__init__()
 
     def run(self):
         """
-        Run the app.
-        :return:
+        Run the video processing menu.
         """
         print("Welcome to the Video Processing App! - By Septsept")
 
@@ -25,7 +24,7 @@ class MenuVideo:
             print("2. List the video paths")
             print("3. Display each video one by one")
             print("4. Process the videos with YOLO")
-            print("5. Quit")
+            print("5. Back to media type selection")
 
             try:
                 choice = int(input("\nChoice: "))
@@ -34,55 +33,40 @@ class MenuVideo:
                 continue
 
             if choice == 1:
-                self.load_video_folder()
+                self.load_folder()
             elif choice == 2:
-                self.list_videos()
+                self.list_media()
             elif choice == 3:
-                self.display_videos()
+                self.display_media()
             elif choice == 4:
-                self.process_videos_with_yolo()
+                self.process_with_yolo()
             elif choice == 5:
                 print("Goodbye!")
                 break
             else:
                 print("Invalid choice. Please try again.")
 
-    def load_video_folder(self):
+    def load_folder(self):
         """
         Load a folder of videos.
-        :return:
         """
         folder_path = input("Enter the path to the folder containing the videos:").strip()
         try:
-            self.video_bank = VideoBank(folder_path)
-            print(f"{len(self.video_bank.get_video_paths())} videos loaded successfully.")
-            self.yolo_processor = YOLOProcessor()
+            self.bank = VideoBank(folder_path)
+            print(f"{len(self.bank.get_video_paths())} videos loaded successfully.")
+            self.yolo_processor = VideoProcessor()
         except (FileNotFoundError, ValueError) as e:
             print(f"Error: {e}")
 
-    def list_videos(self):
-        """
-        List the video paths.
-        :return:
-        """
-        if self.video_bank is None:
-            print("Please load a folder of videos first (option 1).")
-            return
-
-        print("\nVideos loaded:")
-        for video_path in self.video_bank.get_video_paths():
-            print(f"- {video_path}")
-
-    def display_videos(self):
+    def display_media(self):
         """
         Display each video one by one.
-        :return:
         """
-        if self.video_bank is None:
+        if self.bank is None:
             print("Please load a folder of videos first (option 1).")
             return
 
-        for video_path in self.video_bank:
+        for video_path in self.bank:
             try:
                 cap = cv2.VideoCapture(video_path)
                 if not cap.isOpened():
@@ -109,12 +93,11 @@ class MenuVideo:
 
         cv2.destroyAllWindows()
 
-    def process_videos_with_yolo(self):
+    def process_with_yolo(self):
         """
         Process the videos with YOLO.
-        :return:
         """
-        if self.video_bank is None:
+        if self.bank is None:
             print("Please load a folder of videos first (option 1).")
             return
 
@@ -122,5 +105,5 @@ class MenuVideo:
             print("Please initialize the YOLO processor first (option 1).")
             return
 
-        self.yolo_processor.process_videos(self.video_bank.get_video_paths())
+        self.yolo_processor.process_videos(self.bank.get_video_paths())
         print("Processing completed. Annotated videos saved in the 'processed_videos' folder.")
