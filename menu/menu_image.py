@@ -1,33 +1,30 @@
 import cv2
+from menu.menu import Menu
+from banks.image_bank import ImageBank
+from processor.image_processor import ImageProcessor
 
-from imageBank import ImageBank
-from yoloProcessor import YOLOProcessor
-
-
-class Main:
+class MenuImage(Menu):
     """
-    Main class to manage images and YOLO processing.
+    Class to handle image processing menu.
     """
     def __init__(self):
         """
         Constructor.
         """
-        self.image_bank = None
-        self.yolo_processor = None
+        super().__init__()
 
     def run(self):
         """
-        Run the main application.
-        :return:
+        Run the image processing menu.
         """
-        print("Welcome to the Image Processing App ! - By Septsept")
+        print("Welcome to the Image Processing App! - By Septsept")
 
         while True:
             print("\n1. Load a folder of images")
             print("2. List the image paths")
             print("3. Display each image one by one")
             print("4. Process the images with YOLO")
-            print("5. Quit")
+            print("5. Back to media type selection")
 
             try:
                 choice = int(input("\nChoice: "))
@@ -36,55 +33,40 @@ class Main:
                 continue
 
             if choice == 1:
-                self.load_image_folder()
+                self.load_folder()
             elif choice == 2:
-                self.list_images()
+                self.list_media()
             elif choice == 3:
-                self.display_images()
+                self.display_media()
             elif choice == 4:
-                self.process_images_with_yolo()
+                self.process_with_yolo()
             elif choice == 5:
                 print("Goodbye!")
                 break
             else:
                 print("Invalid choice. Please try again.")
 
-    def load_image_folder(self):
+    def load_folder(self):
         """
         Load a folder of images.
-        :return:
         """
         folder_path = input("Enter the path to the folder containing the images:").strip()
         try:
-            self.image_bank = ImageBank(folder_path)
-            print(f"{len(self.image_bank.get_image_paths())} images loaded successfully.")
-            self.yolo_processor = YOLOProcessor(model_path="yolo11x.pt", output_folder="processed_images")
+            self.bank = ImageBank(folder_path)
+            print(f"{len(self.bank.get_image_paths())} images loaded successfully.")
+            self.yolo_processor = ImageProcessor(model_path="yolo11x.pt", output_folder="output/processed_images")
         except (FileNotFoundError, ValueError) as e:
             print(f"Error: {e}")
 
-    def list_images(self):
-        """
-        List the image paths.
-        :return:
-        """
-        if self.image_bank is None:
-            print("Please load a folder of images first (option 1).")
-            return
-
-        print("\nImages loaded:")
-        for image_path in self.image_bank.get_image_paths():
-            print(f"- {image_path}")
-
-    def display_images(self):
+    def display_media(self):
         """
         Display each image one by one.
-        :return:
         """
-        if self.image_bank is None:
+        if self.bank is None:
             print("Please load a folder of images first (option 1).")
             return
 
-        for image_path in self.image_bank:
+        for image_path in self.bank:
             try:
                 image = cv2.imread(image_path)
                 if image is None:
@@ -105,12 +87,11 @@ class Main:
 
         cv2.destroyAllWindows()
 
-    def process_images_with_yolo(self):
+    def process_with_yolo(self):
         """
         Process the images with YOLO.
-        :return:
         """
-        if self.image_bank is None:
+        if self.bank is None:
             print("Please load a folder of images first (option 1).")
             return
 
@@ -118,5 +99,5 @@ class Main:
             print("Please initialize the YOLO processor first (option 1).")
             return
 
-        self.yolo_processor.process_images(self.image_bank.get_image_paths())
+        self.yolo_processor.process_images(self.bank.get_image_paths())
         print("Processing completed. Annotated images saved in the 'processed_images' folder.")
